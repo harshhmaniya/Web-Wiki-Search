@@ -9,6 +9,7 @@ try:
     import operator
     import logging
     import time
+    import os
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError as e:
@@ -19,6 +20,30 @@ except ImportError as e:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Check for API keys
+if not os.environ.get("GROQ_API_KEY"):
+    logger.error("GROQ_API_KEY not found in environment variables")
+    raise ValueError("GROQ_API_KEY not set. Please set it in your environment or .env file")
+
+if not os.environ.get("TAVILY_API_KEY"):
+    logger.error("TAVILY_API_KEY not found in environment variables")
+    raise ValueError("TAVILY_API_KEY not set. Please set it in your environment or .env file")
+
+# Try to access Streamlit secrets if running in Streamlit Cloud
+try:
+    import streamlit as st
+    # If we have secrets, use them
+    if hasattr(st, "secrets"):
+        if "GROQ_API_KEY" in st.secrets and not os.environ.get("GROQ_API_KEY"):
+            os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+            logger.info("Using GROQ_API_KEY from Streamlit secrets")
+        
+        if "TAVILY_API_KEY" in st.secrets and not os.environ.get("TAVILY_API_KEY"):
+            os.environ["TAVILY_API_KEY"] = st.secrets["TAVILY_API_KEY"]
+            logger.info("Using TAVILY_API_KEY from Streamlit secrets")
+except ImportError:
+    logger.info("Not running in Streamlit environment")
 
 # Initialize LLM with error handling
 try:

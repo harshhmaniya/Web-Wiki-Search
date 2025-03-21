@@ -15,6 +15,14 @@ except ImportError as e:
     graph_loaded = False
     error_message = str(e)
     logger.error(f"Error importing web_wiki_search graph: {error_message}")
+    # Try to load fallback
+    try:
+        import fallback_search
+        fallback_loaded = True
+        logger.info("Fallback search module loaded")
+    except ImportError:
+        fallback_loaded = False
+        logger.error("Fallback search module failed to load")
 
 st.set_page_config(
     page_title="AI Search Engine",
@@ -188,6 +196,13 @@ if not query:
         3. If deploying to Streamlit Cloud, add these API keys to your app secrets.
         """)
         
+        # Add help tools
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("[🔍 Run Diagnostics Tool](diagnostic)")
+        with col2:
+            st.markdown("[🔑 API Keys Setup Guide](streamlit_secrets)")
+        
         with st.expander("📋 Deployment Checklist", expanded=False):
             st.markdown("""
             - ✅ Ensure all packages in requirements.txt are compatible with your Python version
@@ -235,8 +250,58 @@ if search_button and query:
     
     # Check if graph module is loaded
     if not graph_loaded:
-        st.error(f"❌ Can't process search - Error loading search module: {error_message}")
-        st.info("Please check your installation and API keys")
+        if fallback_loaded:
+            st.warning("⚠️ Using fallback search mode - Limited functionality")
+            start_time = time.time()
+            
+            with st.spinner("Processing your query..."):
+                try:
+                    # Use fallback search instead
+                    response = fallback_search.invoke({"question": query})
+                    
+                    # Calculate time taken
+                    time_taken = time.time() - start_time
+                    
+                    # Extract answer and sources
+                    answer = extract_answer(response)
+                    sources = format_sources(response)
+                    
+                    # Display results
+                    st.markdown("### 📝 Results")
+                    
+                    # Display answer
+                    with st.container(border=True):
+                        st.write(answer)
+                        st.markdown(f'<div class="timer">⏱️ Processed in {time_taken:.2f} seconds</div>', unsafe_allow_html=True)
+                    
+                    # Display sources if available
+                    if sources:
+                        with st.expander("📚 View Sources", expanded=False):
+                            st.markdown("Additional resources:")
+                            
+                            for source in sources:
+                                title = source.get('title', 'Unknown Source')
+                                url = source.get('url', '')
+                                preview = source.get('content_preview', 'No preview available')
+                                
+                                st.markdown(f"""
+                                <div class="source-card">
+                                    <div class="source-title">{title}</div>
+                                    <div class="source-url">{url}</div>
+                                    <div class="source-preview">{preview}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                    
+                except Exception as e:
+                    logger.error(f"Error in fallback search: {str(e)}")
+                    st.error(f"An error occurred with fallback search: {str(e)}")
+                    
+        else:
+            st.error(f"❌ Can't process search - Error loading search module: {error_message}")
+            st.info("Please check your installation and API keys")
+            
+            # Add a link to run the diagnostic app
+            st.markdown("[📋 Run Diagnostics Tool](diagnostic) to troubleshoot the problem.")
     else:
         # Start timer
         start_time = time.time()
