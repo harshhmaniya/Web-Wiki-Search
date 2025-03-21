@@ -1,24 +1,17 @@
-# AI-Powered Search Engine
+# Web-Wiki-Search
 
-A Streamlit application that leverages web search and Wikipedia to provide comprehensive answers to user questions using LLMs.
+An AI-powered search application that combines web search results and Wikipedia information to provide comprehensive answers to user queries.
 
 ## Features
 
-- **Dual-Source Search**: Combines web search results and Wikipedia articles
-- **Source Tracking**: Displays the sources of information used to generate answers
-- **Advanced Prompt Engineering**: Ensures accurate, well-structured responses
-- **Query History**: Keeps track of your previous searches for easy access
-- **Error Handling**: Robust error handling throughout the application
-- **Performance Metrics**: Shows how long it takes to generate answers
-- **Responsive UI**: Clean and intuitive user interface
-
-## Screenshots
-
-![Application Screenshot](https://via.placeholder.com/800x450.png?text=AI+Search+Engine+Screenshot)
+- Dual-source search combining web results and Wikipedia articles
+- Source tracking for transparency and verification
+- Error handling and robust search capabilities
+- Clean, intuitive Streamlit interface
 
 ## Setup
 
-1. Ensure you have Python 3.9+ installed
+1. Ensure Python 3.9+ is installed
 2. Create a `.env` file with your API keys:
 ```
 GROQ_API_KEY=your_groq_api_key
@@ -37,32 +30,17 @@ Alternatively, use the included batch file:
 run_app.bat
 ```
 
-## System Architecture
+## Project Structure
 
-The application is built on a graph-based workflow:
+- `app.py`: Streamlit frontend application
+- `web_wiki_search.py`: Core search functionality using LangChain and LangGraph
+- `requirements.txt`: Project dependencies
 
-1. **Question Input**: User submits a question through the Streamlit interface
-2. **Parallel Search**: The question is sent simultaneously to:
-   - Web Search (via Tavily API)
-   - Wikipedia Search
-3. **Context Assembly**: Results from both sources are formatted and combined
-4. **LLM Answer Generation**: Groq's Llama-3.3-70b-versatile model processes the context
-5. **Source Documentation**: The application tracks sources throughout the process
-6. **Result Presentation**: The answer and sources are displayed in the UI
+## Technologies
 
-## Technologies Used
-
-- **Streamlit**: Frontend framework
-- **LangChain**: Framework for LLM applications
-- **LangGraph**: For orchestrating the multi-step workflow
-- **Groq**: Provides the Llama-3.3-70b-versatile LLM
-- **Tavily Search API**: Web search capabilities
-- **Wikipedia API**: Access to Wikipedia's knowledge base
-
-## Future Improvements
-
-- Add user authentication
-- Implement answer rating system
-- Enable export of search results
-- Add more data sources
-- Support for document upload 
+- Streamlit for the user interface
+- LangChain for LLM integration
+- LangGraph for workflow orchestration
+- Groq for LLM access (Llama-3.3-70b-versatile)
+- Tavily Search API for web search
+- Wikipedia API for knowledge base access 
