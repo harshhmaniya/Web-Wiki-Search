@@ -1,11 +1,20 @@
 import streamlit as st
-from web_wiki_search import graph
 import time
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Attempt to load the graph module with error handling
+try:
+    from web_wiki_search import graph
+    graph_loaded = True
+    logger.info("Successfully imported web_wiki_search graph")
+except ImportError as e:
+    graph_loaded = False
+    error_message = str(e)
+    logger.error(f"Error importing web_wiki_search graph: {error_message}")
 
 st.set_page_config(
     page_title="AI Search Engine",
@@ -161,29 +170,59 @@ if st.session_state.query_history and not query:
 
 # Feature highlights (only show when no query is in progress)
 if not query:
-    st.markdown("### 🌟 Features")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("##### 🌐 Web Search")
-        st.write("Get relevant information from across the internet")
-    with col2:
-        st.markdown("##### 📚 Wikipedia")
-        st.write("Access structured knowledge from Wikipedia")
-    with col3:
-        st.markdown("##### 🤖 AI Analysis")
-        st.write("LLM-powered answers synthesized from multiple sources")
-    
-    st.markdown("### 💡 Try asking about:")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("- History and historical events")
-        st.markdown("- Science and technology")
-        st.markdown("- Current affairs")
-    with col2:
-        st.markdown("- Famous people and places")
-        st.markdown("- Concepts and ideas")
-        st.markdown("- How things work")
+    if not graph_loaded:
+        st.error("⚠️ Search module failed to load")
+        st.markdown("### 🔧 Troubleshooting")
+        
+        st.markdown("""
+        **Check the following to resolve the issue:**
+        1. Ensure all dependencies are installed:
+           ```
+           pip install -r requirements.txt
+           ```
+        2. Verify your `.env` file contains valid API keys:
+           ```
+           GROQ_API_KEY=your_groq_api_key
+           TAVILY_API_KEY=your_tavily_api_key
+           ```
+        3. If deploying to Streamlit Cloud, add these API keys to your app secrets.
+        """)
+        
+        with st.expander("📋 Deployment Checklist", expanded=False):
+            st.markdown("""
+            - ✅ Ensure all packages in requirements.txt are compatible with your Python version
+            - ✅ Check that all imports in web_wiki_search.py are available
+            - ✅ Confirm API keys are properly set in Streamlit secrets if cloud-deployed
+            - ✅ Try running the app locally first to ensure no issues with the codebase
+            """)
+        
+        # Show the original error
+        with st.expander("🔍 Error Details", expanded=False):
+            st.code(error_message)
+    else:
+        st.markdown("### 🌟 Features")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown("##### 🌐 Web Search")
+            st.write("Get relevant information from across the internet")
+        with col2:
+            st.markdown("##### 📚 Wikipedia")
+            st.write("Access structured knowledge from Wikipedia")
+        with col3:
+            st.markdown("##### 🤖 AI Analysis")
+            st.write("LLM-powered answers synthesized from multiple sources")
+        
+        st.markdown("### 💡 Try asking about:")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("- History and historical events")
+            st.markdown("- Science and technology")
+            st.markdown("- Current affairs")
+        with col2:
+            st.markdown("- Famous people and places")
+            st.markdown("- Concepts and ideas")
+            st.markdown("- How things work")
 
 # Handle search
 if search_button and query:
@@ -194,51 +233,56 @@ if search_button and query:
         if len(st.session_state.query_history) > 10:
             st.session_state.query_history.pop(0)
     
-    # Start timer
-    start_time = time.time()
-    
-    with st.spinner("🔍 Searching web and Wikipedia..."):
-        try:
-            # Process the search query using the graph from web_wiki_search.py
-            response = graph.invoke({"question": query})
-            
-            # Calculate time taken
-            time_taken = time.time() - start_time
-            
-            # Extract answer and sources
-            answer = extract_answer(response)
-            sources = format_sources(response)
-            
-            # Display results
-            st.markdown("### 📝 Results")
-            
-            # Fix for answer display - use container and write for better visibility
-            with st.container(border=True):
-                st.subheader("Answer")
-                st.write(answer)
-                st.markdown(f'<div class="timer">⏱️ Answer generated in {time_taken:.2f} seconds</div>', unsafe_allow_html=True)
-            
-            # Display sources if available
-            if sources:
-                with st.expander("📚 View Sources", expanded=False):
-                    st.markdown("The answer was generated using information from these sources:")
-                    
-                    for source in sources:
-                        title = source.get('title', 'Unknown Source')
-                        url = source.get('url', '')
-                        preview = source.get('content_preview', 'No preview available')
+    # Check if graph module is loaded
+    if not graph_loaded:
+        st.error(f"❌ Can't process search - Error loading search module: {error_message}")
+        st.info("Please check your installation and API keys")
+    else:
+        # Start timer
+        start_time = time.time()
+        
+        with st.spinner("🔍 Searching web and Wikipedia..."):
+            try:
+                # Process the search query using the graph from web_wiki_search.py
+                response = graph.invoke({"question": query})
+                
+                # Calculate time taken
+                time_taken = time.time() - start_time
+                
+                # Extract answer and sources
+                answer = extract_answer(response)
+                sources = format_sources(response)
+                
+                # Display results
+                st.markdown("### 📝 Results")
+                
+                # Fix for answer display - use container and write for better visibility
+                with st.container(border=True):
+                    st.subheader("Answer")
+                    st.write(answer)
+                    st.markdown(f'<div class="timer">⏱️ Answer generated in {time_taken:.2f} seconds</div>', unsafe_allow_html=True)
+                
+                # Display sources if available
+                if sources:
+                    with st.expander("📚 View Sources", expanded=False):
+                        st.markdown("The answer was generated using information from these sources:")
                         
-                        st.markdown(f"""
-                        <div class="source-card">
-                            <div class="source-title">{title}</div>
-                            <div class="source-url">{url}</div>
-                            <div class="source-preview">{preview}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-            
-        except Exception as e:
-            logger.error(f"Error during search: {str(e)}")
-            st.error(f"An error occurred: {str(e)}")
-            st.write("Please try again with a different question.")
+                        for source in sources:
+                            title = source.get('title', 'Unknown Source')
+                            url = source.get('url', '')
+                            preview = source.get('content_preview', 'No preview available')
+                            
+                            st.markdown(f"""
+                            <div class="source-card">
+                                <div class="source-title">{title}</div>
+                                <div class="source-url">{url}</div>
+                                <div class="source-preview">{preview}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                
+            except Exception as e:
+                logger.error(f"Error during search: {str(e)}")
+                st.error(f"An error occurred: {str(e)}")
+                st.write("Please try again with a different question.")
 
 # Footer removed 

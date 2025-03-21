@@ -3,4 +3,7 @@ langchain-groq==0.0.5
 langchain-core==0.2.7
 langchain-community==0.0.29
 langgraph==0.1.22
-python-dotenv==1.0.1 
+python-dotenv==1.0.1
+typing-extensions>=4.5.0
+wikipedia==1.4.0
+tavily-python==0.2.6 

@@ -1,15 +1,20 @@
-from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_community.document_loaders import WikipediaLoader
-from langchain_community.tools import TavilySearchResults
-from langgraph.graph import START, END, StateGraph
-from typing_extensions import TypedDict
-from typing import Annotated, List, Dict, Any, Optional
-import operator
-import logging
-import time
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from langchain_groq import ChatGroq
+    from langchain_core.messages import HumanMessage, SystemMessage
+    from langchain_community.document_loaders import WikipediaLoader
+    from langchain_community.tools import TavilySearchResults
+    from langgraph.graph import START, END, StateGraph
+    from typing_extensions import TypedDict
+    from typing import Annotated, List, Dict, Any, Optional
+    import operator
+    import logging
+    import time
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError as e:
+    import logging
+    logging.error(f"Import error: {e}")
+    raise
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
